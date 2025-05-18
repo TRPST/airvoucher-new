@@ -13,6 +13,9 @@ import {
   Loader2,
   AlertCircle,
   X,
+  Power,
+  Trash2,
+  Check,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -25,6 +28,8 @@ import {
   fetchAdminTerminals,
   fetchSalesReport,
   createTerminal,
+  toggleTerminalStatus,
+  deleteTerminal,
   type AdminRetailer,
   type AdminTerminal,
   type SalesReport,
@@ -53,6 +58,16 @@ export default function RetailerDetails() {
   const [terminalFormError, setTerminalFormError] = useState<string | null>(
     null
   );
+
+  // Terminal action states
+  const [activeTerminalMenu, setActiveTerminalMenu] = useState<string | null>(
+    null
+  );
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [terminalToDelete, setTerminalToDelete] =
+    useState<AdminTerminal | null>(null);
+  const [isProcessingTerminalAction, setIsProcessingTerminalAction] =
+    useState(false);
 
   // Load retailer data
   useEffect(() => {
@@ -195,10 +210,52 @@ export default function RetailerDetails() {
         })
       : "Never",
     Actions: (
-      <div className="flex items-center gap-2">
-        <button className="rounded-md p-2 hover:bg-muted">
+      <div className="flex items-center gap-2 relative">
+        <button
+          className="rounded-md p-2 hover:bg-muted"
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveTerminalMenu(
+              activeTerminalMenu === terminal.id ? null : terminal.id
+            );
+          }}
+        >
           <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
         </button>
+
+        {/* Dropdown Menu */}
+        {activeTerminalMenu === terminal.id && (
+          <div
+            className="absolute right-0 top-8 z-10 w-48 rounded-md bg-card border border-border shadow-lg py-1 text-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="flex w-full items-center px-4 py-2 hover:bg-muted gap-2"
+              onClick={() => handleToggleTerminalStatus(terminal)}
+              disabled={isProcessingTerminalAction}
+            >
+              <Power className="h-4 w-4 text-muted-foreground" />
+              <span>
+                {terminal.status === "active" ? "Deactivate" : "Activate"}
+              </span>
+              {isProcessingTerminalAction && (
+                <Loader2 className="h-3 w-3 animate-spin ml-auto" />
+              )}
+            </button>
+            <button
+              className="flex w-full items-center px-4 py-2 hover:bg-muted text-destructive gap-2"
+              onClick={() => {
+                setTerminalToDelete(terminal);
+                setShowDeleteModal(true);
+                setActiveTerminalMenu(null);
+              }}
+              disabled={isProcessingTerminalAction}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Delete</span>
+            </button>
+          </div>
+        )}
       </div>
     ),
   }));
@@ -229,6 +286,60 @@ export default function RetailerDetails() {
   ) => {
     const { name, value } = e.target;
     setTerminalFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Terminal action handlers
+  const handleToggleTerminalStatus = async (terminal: AdminTerminal) => {
+    if (typeof id !== "string") return;
+
+    setIsProcessingTerminalAction(true);
+    try {
+      const { error } = await toggleTerminalStatus(terminal.id);
+
+      if (error) {
+        console.error("Error toggling terminal status:", error);
+        return;
+      }
+
+      // Refresh the terminals list
+      const { data: terminalsData } = await fetchAdminTerminals(id);
+      if (terminalsData) {
+        setTerminals(terminalsData);
+      }
+    } catch (err) {
+      console.error("Error in terminal action:", err);
+    } finally {
+      setIsProcessingTerminalAction(false);
+      setActiveTerminalMenu(null);
+    }
+  };
+
+  const handleDeleteTerminal = async () => {
+    if (!terminalToDelete || typeof id !== "string") return;
+
+    setIsProcessingTerminalAction(true);
+    try {
+      const { error } = await deleteTerminal(terminalToDelete.id);
+
+      if (error) {
+        console.error("Error deleting terminal:", error);
+        return;
+      }
+
+      // Refresh the terminals list
+      const { data: terminalsData } = await fetchAdminTerminals(id);
+      if (terminalsData) {
+        setTerminals(terminalsData);
+      }
+
+      // Close the modal
+      setShowDeleteModal(false);
+      setTerminalToDelete(null);
+    } catch (err) {
+      console.error("Error in terminal action:", err);
+    } finally {
+      setIsProcessingTerminalAction(false);
+    }
   };
 
   const handleTerminalSubmit = async (e: React.FormEvent) => {
@@ -542,6 +653,74 @@ export default function RetailerDetails() {
                   </button>
                 </div>
               </form>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Delete Terminal Confirmation Modal */}
+      <Dialog.Root open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <Dialog.Content className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-md translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-card p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] rounded-lg">
+            <div className="flex items-center justify-between">
+              <Dialog.Title className="text-lg font-semibold text-destructive">
+                Delete Terminal
+              </Dialog.Title>
+              <Dialog.Close className="rounded-full p-2 hover:bg-muted">
+                <X className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Close</span>
+              </Dialog.Close>
+            </div>
+
+            <div className="mt-2 space-y-4">
+              <div className="flex items-center">
+                <div className="mr-4 rounded-full bg-destructive/10 p-2">
+                  <Trash2 className="h-5 w-5 text-destructive" />
+                </div>
+                <div>
+                  <p className="font-medium">
+                    Are you sure you want to delete this terminal?
+                  </p>
+                  {terminalToDelete && (
+                    <p className="text-sm text-muted-foreground">
+                      Terminal: {terminalToDelete.name}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                This action cannot be undone. This will permanently delete the
+                terminal and remove it from the system.
+              </p>
+
+              <div className="flex justify-end space-x-2 mt-6">
+                <Dialog.Close asChild>
+                  <button
+                    type="button"
+                    className="rounded-md px-4 py-2 text-sm font-medium border border-input hover:bg-muted"
+                    onClick={() => setTerminalToDelete(null)}
+                  >
+                    Cancel
+                  </button>
+                </Dialog.Close>
+                <button
+                  type="button"
+                  onClick={handleDeleteTerminal}
+                  disabled={isProcessingTerminalAction}
+                  className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground shadow hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessingTerminalAction ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
             </div>
           </Dialog.Content>
         </Dialog.Portal>

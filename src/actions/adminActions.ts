@@ -6,6 +6,9 @@
 // Re-export all types
 export * from "./types/adminTypes";
 
+// Re-export user/agent actions
+export { fetchAgents, createAgent, type Agent } from "./admin/userActions";
+
 // Re-export retailer actions
 export {
   fetchRetailers,
@@ -14,7 +17,12 @@ export {
 } from "./admin/retailerActions";
 
 // Re-export terminal actions
-export { fetchTerminals, createTerminal } from "./admin/terminalActions";
+export {
+  fetchTerminals,
+  createTerminal,
+  toggleTerminalStatus,
+  deleteTerminal,
+} from "./admin/terminalActions";
 
 // Re-export voucher actions
 export {

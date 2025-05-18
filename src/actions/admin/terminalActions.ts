@@ -60,3 +60,61 @@ export async function createTerminal(
 
   return { data: terminal, error: null };
 }
+
+/**
+ * Toggle the status of a terminal (active/inactive)
+ */
+export async function toggleTerminalStatus(
+  terminalId: string
+): Promise<ResponseType<{ id: string }>> {
+  // First, get the current status
+  const { data: currentData, error: fetchError } = await supabase
+    .from("terminals")
+    .select("status")
+    .eq("id", terminalId)
+    .single();
+
+  if (fetchError) {
+    return { data: null, error: fetchError };
+  }
+
+  // Toggle the status
+  const newStatus = currentData.status === "active" ? "inactive" : "active";
+
+  // Update the terminal status
+  const { data: terminal, error: updateError } = await supabase
+    .from("terminals")
+    .update({
+      status: newStatus,
+    })
+    .eq("id", terminalId)
+    .select("id")
+    .single();
+
+  if (updateError) {
+    return { data: null, error: updateError };
+  }
+
+  return { data: terminal, error: null };
+}
+
+/**
+ * Delete a terminal
+ */
+export async function deleteTerminal(
+  terminalId: string
+): Promise<ResponseType<{ id: string }>> {
+  // Delete the terminal
+  const { data, error } = await supabase
+    .from("terminals")
+    .delete()
+    .eq("id", terminalId)
+    .select("id")
+    .single();
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  return { data, error: null };
+}

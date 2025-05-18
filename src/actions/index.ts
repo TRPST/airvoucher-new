@@ -27,6 +27,8 @@ export {
   updateRetailer,
   fetchTerminals as fetchAdminTerminals,
   createTerminal,
+  toggleTerminalStatus,
+  deleteTerminal,
   fetchVoucherInventory,
   uploadVouchers,
   disableVoucher,

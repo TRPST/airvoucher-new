@@ -16,8 +16,24 @@ import { cn } from "@/utils/cn";
 import { fetchVoucherInventory, type VoucherInventory } from "@/actions";
 
 export default function AdminVouchers() {
+  // UI state
   const [showUploadDialog, setShowUploadDialog] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
+
+  // Upload state
+  const [uploadFile, setUploadFile] = React.useState<File | null>(null);
+  const [selectedVoucherTypes, setSelectedVoucherTypes] = React.useState<
+    string[]
+  >([]);
+  const [selectedProviders, setSelectedProviders] = React.useState<string[]>(
+    []
+  );
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [uploadProgress, setUploadProgress] = React.useState(0);
+  const [uploadError, setUploadError] = React.useState<string | null>(null);
+  const [uploadMode, setUploadMode] = React.useState<"merge" | "replace">(
+    "merge"
+  );
   const [sortBy, setSortBy] = React.useState<{
     field: string;
     direction: "asc" | "desc";
