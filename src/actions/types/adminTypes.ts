@@ -18,6 +18,22 @@ export type Retailer = {
   commission_group_id?: string;
 };
 
+export type Agent = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string;
+  avatar_url?: string;
+  created_at: string;
+  updated_at: string;
+  status: "active" | "inactive";
+  retailer_count: number;
+  mtd_sales: number;
+  mtd_commission: number;
+  ytd_commission: number;
+  total_commission_earned: number;
+};
+
 export type Terminal = {
   id: string;
   name: string;

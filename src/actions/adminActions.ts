@@ -15,6 +15,14 @@ export {
   fetchAgents,
 } from "./admin/retailerActions";
 
+// Re-export agent actions
+export {
+  fetchAgents as fetchAllAgents,
+  fetchAgentById,
+  updateAgent,
+  fetchAgentRetailers,
+} from "./admin/agentActions";
+
 // Re-export terminal actions
 export { fetchTerminals, createTerminal } from "./admin/terminalActions";
 

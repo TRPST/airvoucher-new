@@ -11,6 +11,7 @@ export { AdminActions, RetailerActions, AgentActions, UserActions };
 // Admin exports
 export type {
   Retailer as AdminRetailer,
+  Agent,
   Terminal as AdminTerminal,
   VoucherInventory,
   CommissionGroup,
@@ -28,6 +29,10 @@ export {
   updateRetailer,
   updateRetailerBalance,
   fetchAgents,
+  fetchAllAgents,
+  fetchAgentById,
+  updateAgent,
+  fetchAgentRetailers,
   fetchTerminals as fetchAdminTerminals,
   createTerminal,
   fetchVoucherInventory,

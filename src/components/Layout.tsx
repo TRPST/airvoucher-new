@@ -157,6 +157,11 @@ export function Layout({ children, role = "admin" }: LayoutProps) {
             icon: Store,
           },
           {
+            name: "Agents",
+            href: "/admin/agents",
+            icon: Users,
+          },
+          {
             name: "Vouchers",
             href: "/admin/vouchers",
             icon: CreditCard,
